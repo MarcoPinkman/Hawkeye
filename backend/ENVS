@@ -1,0 +1,3 @@
+export DATABASE_URL=postgresql://postgres:password@localhost:5432/cctv_event
+export LLAMA_API_KEY=sk-8b81f0c91eb3497388d5fe85c2df9abb
+
