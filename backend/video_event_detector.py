@@ -405,8 +405,7 @@ class VideoEventDetector:
 
             results_content = response.choices[0].message.content
             results = json.loads(results_content)
-            logger.info(f"Received LLM response for {video_path}")
-            logger.info(f"LLM response content {results}")
+            logger.info(f"Received LLM response for {video_path}:{results}")
 
         except json.JSONDecodeError as e:
             logger.error(
