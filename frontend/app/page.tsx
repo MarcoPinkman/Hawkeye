@@ -39,17 +39,25 @@ type AppState = {
 export default function Home() {
   const initialEvents: EventToDetect[] = [
     {
-      code: "robot-is-idle",
-      description:
-        "The robotic arm hasn't moved for the whole duration of the video.",
+      code: "叉车事故监测",
+      description: 
+        "各类生产场景下的叉车运行视频，注意观察是否有事故发生",
       guidelines:
-        "This event must be detected if and only if the robot hasn't moved for the whole duration of the video and the green light is on.",
+        "注意探测画面中是否事故发生，包括但不限于叉车翘翻、人员伤害等情况",
     },
     {
-      code: "robot-in-error",
-      description: "The robot is in error state.",
+      code: "倒地监测",
+      description:
+        "监测人员倒地情况",
       guidelines:
-        "This event must be detected if and only if the robot hasn't moved for the whole duration of the video and the red light is on.",
+        "注意观察画面中的人员是否躺倒在地，包括突然倒地、碰撞倒地、缓慢倒地等情况",
+    },
+    {
+      code: "进球时刻",
+      description:
+        "监测足球进球情况",
+      guidelines:
+        "注意观察画面中的足球运动，当且仅当足球进入球门时触发事件",
     },
   ];
 
@@ -59,11 +67,11 @@ export default function Home() {
     rtspUrl: "rtsp://localhost:8554/hackathon",
     eventsToDetect: initialEvents,
     streamContext:
-      "Outdoor security camera footage showing a parking lot area. Focus on detecting people entering or leaving vehicles, or walking through the lot.",
+      "摄像头所拍摄画面，从视频中每1秒抽取1帧组成。",
     chunkDuration: 5,
-    outputDir: "/Users/torayeff/lab/localdata/video_chunks/",
-    llamaModel: "Llama-4-Maverick-17B-128E-Instruct-FP8",
-    baseUrl: "https://api.llama.com/compat/v1/",
+    outputDir: "/Users/wenjie/llamacon-hackathon-2025-sf-main/localdata/video_chunks/",
+    llamaModel: "qwen-vl-max",
+    baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
   });
 
   const [newEvent, setNewEvent] = useState<EventToDetect>({
@@ -115,7 +123,7 @@ export default function Home() {
 
   const startDetection = useCallback(async () => {
     try {
-      showToast("Starting detection...", "success");
+      showToast("监测程序启动中...", "success");
 
       const requestBody = {
         model: state.llamaModel,
@@ -141,11 +149,11 @@ export default function Home() {
 
       if (response.ok) {
         setIsDetecting(true);
-        showToast("Detection started successfully", "success");
+        showToast("监测程序启动成功", "success");
       } else {
         const errorData = await response.json();
         showToast(
-          `Error starting detection: ${
+          `监测程序启动失败: ${
             errorData.detail || response.statusText
           }`,
           "error"
@@ -153,7 +161,7 @@ export default function Home() {
       }
     } catch (error) {
       showToast(
-        `Error starting detection: ${
+        `监测程序启动失败: ${
           error instanceof Error ? error.message : String(error)
         }`,
         "error"
@@ -163,25 +171,25 @@ export default function Home() {
 
   const stopDetection = useCallback(async () => {
     try {
-      showToast("Stopping detection...", "success");
+      showToast("监测程序关闭中...", "success");
       const response = await fetch("http://localhost:8000/stop", {
         method: "POST",
       });
 
       if (response.ok) {
         setIsDetecting(false);
-        showToast("Detection stopped successfully", "success");
+        showToast("监测程序关闭成功", "success");
       } else {
         const errorData = await response.json();
         showToast(
-          `Error stopping detection: ${
+          `监测程序关闭失败: ${
             errorData.detail || response.statusText
           }`,
           "error"
         );
       }
     } catch (error) {
-      console.error("Error stopping detection:", error);
+      console.error("监测程序关闭失败:", error);
       setIsDetecting(false);
     }
   }, [showToast, setIsDetecting]);
@@ -194,7 +202,7 @@ export default function Home() {
       }, 1000);
     } catch (error) {
       showToast(
-        `Error restarting detection: ${
+        `重启监测程序失败: ${
           error instanceof Error ? error.message : String(error)
         }`,
         "error"
@@ -310,7 +318,7 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center space-y-8 max-w-2xl mx-auto p-8 min-h-[calc(100vh-2rem)]">
             <div className="rounded-full overflow-hidden w-64 h-64 relative mb-6">
               <Image
-                src="/greeting_avatar.png"
+                src="/logo.png"
                 alt="Llama CCTV Operator"
                 fill
                 style={{ objectFit: "cover" }}
@@ -318,15 +326,13 @@ export default function Home() {
               />
             </div>
             <h1 className="text-4xl font-bold text-center text-white">
-              Llama CCTV Operator
+              鹰眼
             </h1>
             <p className="text-xl text-center mb-6 text-gray-300">
-              Intelligent monitoring for your camera feeds
+              智能视频监控助手
             </p>
             <p className="text-center text-gray-400 mb-8 max-w-lg">
-              Powered by Llama 4, Meta&apos;s advanced multimodal AI model.
-              Experience state-of-the-art computer vision and intelligent event
-              detection for your security cameras.
+              Powered by Qwen-VL-MAX.
             </p>
             <button
               onClick={nextStep}
@@ -346,18 +352,18 @@ export default function Home() {
                   <SettingsIcon size={28} className="text-indigo-400" />
                 </div>
                 <h2 className="text-3xl font-bold text-white">
-                  Llama API Setup
+                  Qwen API 设置
                 </h2>
               </div>
 
               <p className="text-gray-400 mb-8">
-                Configure the Llama AI model settings for video event detection.
+                配置千问人工智能模型用于视频事件监测
               </p>
 
               <form onSubmit={handleLlamaSetupSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                   <label className="block text-sm font-medium text-gray-300 md:col-span-1">
-                    Model
+                    模型型号
                   </label>
                   <div className="md:col-span-3">
                     <input
@@ -367,7 +373,7 @@ export default function Home() {
                         setState({ ...state, llamaModel: e.target.value })
                       }
                       className="w-full p-3 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                      placeholder="Llama-4-Maverick-17B-128E-Instruct-FP8"
+                      placeholder="qwen-vl-max"
                       required
                     />
                   </div>
@@ -375,7 +381,7 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                   <label className="block text-sm font-medium text-gray-300 md:col-span-1">
-                    Base URL
+                    API 地址
                   </label>
                   <div className="md:col-span-3">
                     <input
@@ -420,13 +426,13 @@ export default function Home() {
                 <div className="p-3 bg-indigo-800/30 rounded-full">
                   <Camera size={28} className="text-indigo-400" />
                 </div>
-                <h2 className="text-3xl font-bold text-white">Camera Setup</h2>
+                <h2 className="text-3xl font-bold text-white">视频源设置</h2>
               </div>
 
               <form onSubmit={handleUrlSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                   <label className="block text-sm font-medium text-gray-300 md:col-span-1">
-                    Preview URL
+                    预览视频 URL
                   </label>
                   <div className="md:col-span-3">
                     <input
@@ -462,7 +468,7 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                   <label className="block text-sm font-medium text-gray-300 md:col-span-1">
-                    Chunk Duration (s)
+                    视频分块时长 (s)
                   </label>
                   <div className="md:col-span-3">
                     <input
@@ -483,7 +489,7 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                   <label className="block text-sm font-medium text-gray-300 md:col-span-1">
-                    Output Directory
+                    缓存输出目录
                   </label>
                   <div className="md:col-span-3">
                     <input
@@ -529,17 +535,16 @@ export default function Home() {
                   <Plus size={28} className="text-indigo-400" />
                 </div>
                 <h2 className="text-3xl font-bold text-white">
-                  Configure Events to Detect
+                  配置待监测事件
                 </h2>
               </div>
 
               <div className="mb-8 border border-gray-800 rounded-xl p-6 bg-gray-900/30">
                 <h3 className="text-xl font-semibold mb-4 text-white">
-                  Stream Context
+                  视频流信息
                 </h3>
                 <p className="text-gray-400 mb-4">
-                  Provide general context about the video stream to help with
-                  detection.
+                  提供有关视频流内容的背景信息以帮助检测
                 </p>
                 <textarea
                   value={state.streamContext}
@@ -555,7 +560,7 @@ export default function Home() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
                   <h3 className="text-xl font-semibold mb-4 text-white">
-                    Add New Event
+                    新增监测事件
                   </h3>
                   <form
                     onSubmit={handleAddEvent}
@@ -563,7 +568,7 @@ export default function Home() {
                   >
                     <div>
                       <label className="block text-sm font-medium mb-2 text-gray-300">
-                        Event Code
+                        事件简称
                       </label>
                       <input
                         type="text"
@@ -572,13 +577,13 @@ export default function Home() {
                           setNewEvent({ ...newEvent, code: e.target.value })
                         }
                         className="w-full p-3 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                        placeholder="person_detected"
+                        placeholder="例：倒地监测"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2 text-gray-300">
-                        Event Description
+                        事件描述
                       </label>
                       <input
                         type="text"
@@ -590,13 +595,13 @@ export default function Home() {
                           })
                         }
                         className="w-full p-3 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                        placeholder="Person detected in frame"
+                        placeholder="例：监测人员倒地情况"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-2 text-gray-300">
-                        Detection Guidelines
+                        监测事件详细描述（进一步帮助大模型理解具体的监测内容）
                       </label>
                       <textarea
                         value={newEvent.guidelines}
@@ -607,7 +612,7 @@ export default function Home() {
                           })
                         }
                         className="w-full p-3 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                        placeholder="Look for human shapes, standing or walking"
+                        placeholder="例：注意观察画面中的人员是否躺倒在地，包括突然倒地、碰撞倒地、缓慢倒地等情况"
                         rows={3}
                         required
                       />
@@ -617,7 +622,7 @@ export default function Home() {
                         type="submit"
                         className="px-4 py-3 bg-indigo-800 text-white rounded-lg hover:bg-indigo-900 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-700"
                       >
-                        {editingEvent !== null ? "Update Event" : "Add Event"}
+                        {editingEvent !== null ? "Update Event" : "新增监测事件"}
                       </button>
                       {editingEvent !== null && (
                         <button
@@ -636,7 +641,7 @@ export default function Home() {
                   {state.eventsToDetect.length > 0 ? (
                     <div>
                       <h3 className="text-xl font-semibold mb-4 text-white">
-                        Events to Detect
+                        待监测事件
                       </h3>
                       <div className="space-y-3 max-h-[340px] overflow-y-auto pr-2">
                         {state.eventsToDetect.map((event, index) => (
@@ -677,8 +682,7 @@ export default function Home() {
                         className="text-amber-500 mb-4"
                       />
                       <p className="text-center text-gray-400">
-                        No events added yet. Please add at least one event to
-                        detect.
+                        尚未添加任何监测事件，请至少添加一个事件
                       </p>
                     </div>
                   )}
@@ -702,7 +706,7 @@ export default function Home() {
                       : "hover:bg-indigo-900"
                   }`}
                 >
-                  Start Monitoring
+                  开始监测
                   <ArrowRight size={16} />
                 </button>
               </div>
@@ -716,7 +720,7 @@ export default function Home() {
             <div className="max-w-7xl mx-auto p-6 h-screen flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-3xl font-bold text-white">
-                  Llama 🦙 CCTV Monitoring
+                  鹰眼 🦅 视频监测
                 </h2>
                 <div className="flex items-center gap-3">
                   <button
@@ -724,7 +728,7 @@ export default function Home() {
                     className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
                   >
                     {showConfig ? <X size={18} /> : <SettingsIcon size={18} />}
-                    {showConfig ? "Close Settings" : "Settings"}
+                    {showConfig ? "返回" : "系统设置"}
                   </button>
                 </div>
               </div>
@@ -769,7 +773,7 @@ export default function Home() {
                   <div className="p-4 border border-gray-800 rounded-xl bg-gray-900/50 backdrop-blur-sm mt-4 flex-shrink-0">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold text-white">
-                        Video Information
+                        视频信息
                       </h3>
                       {isDetecting && (
                         <div className="flex items-center gap-2 px-3 py-1 bg-green-900/50 border border-green-800 rounded-lg text-sm text-green-300">
@@ -788,18 +792,18 @@ export default function Home() {
                   {showConfig ? (
                     <div className="p-4 border border-gray-800 rounded-xl bg-gray-900/50 backdrop-blur-sm overflow-y-auto h-full flex flex-col">
                       <h3 className="text-lg font-semibold mb-3 text-white">
-                        Settings
+                        系统设置
                       </h3>
 
                       <div className="space-y-4 flex-grow">
                         <div>
                           <h4 className="text-md font-medium mb-3 text-white">
-                            Llama API Settings
+                            大模型 API 设置
                           </h4>
                           <div className="space-y-3">
                             <div>
                               <label className="block text-sm font-medium mb-1 text-gray-300">
-                                Model
+                                模型型号
                               </label>
                               <input
                                 type="text"
@@ -811,12 +815,12 @@ export default function Home() {
                                   })
                                 }
                                 className="w-full p-2 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                                placeholder="Llama-4-Maverick-17B-128E-Instruct-FP8"
+                                placeholder="qwen-vl-max"
                               />
                             </div>
                             <div>
                               <label className="block text-sm font-medium mb-1 text-gray-300">
-                                Base URL
+                                模型 URL
                               </label>
                               <input
                                 type="text"
@@ -836,12 +840,12 @@ export default function Home() {
 
                         <div className="mt-4 pt-4 border-t border-gray-700">
                           <h4 className="text-md font-medium mb-3 text-white">
-                            Stream URLs
+                            视频流 URLs
                           </h4>
                           <div className="space-y-3">
                             <div>
                               <label className="block text-sm font-medium mb-1 text-gray-300">
-                                Preview URL
+                                预览 URL
                               </label>
                               <input
                                 type="text"
@@ -875,7 +879,7 @@ export default function Home() {
                             </div>
                             <div>
                               <label className="block text-sm font-medium mb-1 text-gray-300">
-                                Chunk Duration (s)
+                                视频分块时长 (s)
                               </label>
                               <input
                                 type="number"
@@ -893,7 +897,7 @@ export default function Home() {
                             </div>
                             <div>
                               <label className="block text-sm font-medium mb-1 text-gray-300">
-                                Output Directory
+                                缓存输出目录
                               </label>
                               <input
                                 type="text"
@@ -913,7 +917,7 @@ export default function Home() {
 
                         <div className="mt-4 pt-4 border-t border-gray-700">
                           <h4 className="text-md font-medium mb-3 text-white">
-                            Stream Context
+                            视频流信息
                           </h4>
                           <textarea
                             value={state.streamContext}
@@ -932,7 +936,7 @@ export default function Home() {
                         {state.eventsToDetect.length > 0 && (
                           <div className="mt-4 pt-4 border-t border-gray-700">
                             <h4 className="text-md font-medium mb-3 text-white">
-                              Events
+                              已配置事件
                             </h4>
                             <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1">
                               {state.eventsToDetect.map((event, index) => (
@@ -973,8 +977,8 @@ export default function Home() {
                         <div className="mt-4 pt-4 border-t border-gray-700">
                           <h4 className="text-md font-medium mb-3 text-white">
                             {editingEvent !== null
-                              ? "Edit Event"
-                              : "Add New Event"}
+                              ? "编辑事件"
+                              : "新增事件"}
                           </h4>
                           <div className="space-y-3">
                             <input
@@ -987,7 +991,7 @@ export default function Home() {
                                 })
                               }
                               className="w-full p-2 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                              placeholder="Event Code"
+                              placeholder="事件简称"
                             />
                             <input
                               type="text"
@@ -999,7 +1003,7 @@ export default function Home() {
                                 })
                               }
                               className="w-full p-2 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                              placeholder="Event Description"
+                              placeholder="事件描述"
                             />
                             <textarea
                               value={newEvent.guidelines}
@@ -1010,7 +1014,7 @@ export default function Home() {
                                 })
                               }
                               className="w-full p-2 border border-gray-800 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-indigo-700 focus:border-transparent"
-                              placeholder="Detection Guidelines"
+                              placeholder="监测事件详细描述"
                               rows={2}
                             />
                             <div className="flex gap-2">
@@ -1048,14 +1052,14 @@ export default function Home() {
                                 }}
                                 className="px-3 py-1.5 bg-indigo-800 text-white text-sm rounded hover:bg-indigo-900 transition-colors"
                               >
-                                {editingEvent !== null ? "Update" : "Add"}
+                                {editingEvent !== null ? "更新" : "新增"}
                               </button>
                               {editingEvent !== null && (
                                 <button
                                   onClick={cancelEdit}
                                   className="px-3 py-1.5 bg-gray-700 text-white text-sm rounded hover:bg-gray-800 transition-colors"
                                 >
-                                  Cancel
+                                  取消
                                 </button>
                               )}
                             </div>
@@ -1069,7 +1073,7 @@ export default function Home() {
                           className="w-full py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
                         >
                           <RefreshCw size={16} />
-                          Restart Detection with New Settings
+                          重启以启用新设置
                         </button>
 
                         {isDetecting && (
@@ -1086,7 +1090,7 @@ export default function Home() {
                   ) : (
                     <div className="p-4 border border-gray-800 rounded-xl bg-gray-900/50 backdrop-blur-sm h-full flex flex-col overflow-hidden">
                       <h3 className="text-lg font-semibold mb-3 text-white flex-shrink-0">
-                        Detected Events
+                        已监测到的事件
                       </h3>
                       <div className="overflow-hidden flex-grow">
                         <EventLogs onOpenVideo={handleOpenVideo} />

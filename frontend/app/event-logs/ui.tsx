@@ -206,7 +206,7 @@ export default function EventLogs({
         ) : (
           <div className="text-center py-8 text-gray-400 flex flex-col items-center justify-center">
             <Database className="w-6 h-6 mb-2 text-gray-500" />
-            {fetchError ? "Error loading events" : "No events detected yet"}
+            {fetchError ? "Error loading events" : "还没有监测到任何事件哦"}
           </div>
         )}
       </div>
